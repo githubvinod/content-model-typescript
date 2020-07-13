@@ -8,29 +8,32 @@ export interface Source {
 }
 
 export class TransformCsvContentToTypeScript {
-  constructor(readonly srcPath?: string) {
+  readonly ph: ap.PersistenceHandler;
+  readonly code: poly.TypeScriptCodeDeclaration;
+
+  constructor(ph?: ap.PersistenceHandler) {
+    this.ph = ph || new ap.ConsolePersistenceHandler();
+    this.code = new poly.TypeScriptCodeDeclaration(this.ph);
   }
 
-  async transformCsvSourcesWithHeaders(sources: Source[]): Promise<void> {
-    const ph = new ap.ConsolePersistenceHandler();
-    const code = new poly.TypeScriptCodeDeclaration(ph);
+  async transformSourcesWithHeaders(sources: Source[]): Promise<void> {
     for (const source of sources) {
       const module = new poly.TypeScriptModuleDeclaration(
-        code,
+        this.code,
         source.moduleName || inflect.guessCaseValue(source.csvSource),
       );
-      code.declareModule(module);
+      this.code.declareModule(module);
       const [model, intrfDecl] = await this.transformSingleSource(
         source,
         module,
       );
       module.declareInterface(intrfDecl);
     }
-    this.emit(code);
+    this.emit(this.code);
   }
 
-  async transformCsvSourceWithHeaders(source: Source): Promise<void> {
-    this.transformCsvSourcesWithHeaders([source]);
+  async transformSourceWithHeaders(source: Source): Promise<void> {
+    this.transformSourcesWithHeaders([source]);
   }
 
   protected createCodeContainer(): poly.TypeScriptCodeDeclaration {
@@ -71,7 +74,7 @@ export class TransformCsvContentToTypeScript {
     source: Source,
     intrf: poly.TypeScriptInterfaceDeclaration,
   ): Promise<m.ContentModel> {
-    const f = await Deno.open(`${this.srcPath}/${source.csvSource}`);
+    const f = await Deno.open(source.csvSource);
     let contentIndex = 0;
     let model = undefined;
     for await (const row of csv.readCSVObjects(f)) {
@@ -93,11 +96,3 @@ export class TransformCsvContentToTypeScript {
     return model!;
   }
 }
-
-const tts = new TransformCsvContentToTypeScript(".");
-tts.transformCsvSourcesWithHeaders(
-  [
-    { csvSource: "model_test-single-row.csv" },
-    { csvSource: "model_test-complex.csv" },
-  ],
-);
