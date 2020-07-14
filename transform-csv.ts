@@ -1,4 +1,4 @@
-import { ap, csv, inflect, model as m, poly } from "./deps.ts";
+import { ap, bufIO, csv, inflect, model as m, poly } from "./deps.ts";
 import * as td from "./typescript-decls.ts";
 
 export interface Source {
@@ -75,24 +75,56 @@ export class TransformCsvContentToTypeScript {
     intrf: poly.TypeScriptInterfaceDeclaration,
   ): Promise<m.ContentModel> {
     const f = await Deno.open(source.csvSource);
+    const matrix = await csv.readMatrix(new bufIO.BufReader(f));
+    f.close();
+
+    const colIndexByName: { [key: string]: number } = {};
+    let headerRow: string[];
     let contentIndex = 0;
     let model = undefined;
-    for await (const row of csv.readCSVObjects(f)) {
+    for (const row of matrix) {
       if (contentIndex == 0) {
+        headerRow = row;
+        row.map((col, index) => colIndexByName[col] = index);
+        contentIndex++;
+        continue;
+      }
+
+      const values: m.ContentValuesSupplier = {
+        contentIndex: contentIndex,
+        valueNames: headerRow!,
+        valueByName: (name: string): any => {
+          const index = colIndexByName[name];
+          return row[index];
+        },
+      };
+
+      if (contentIndex == 1) {
         const tdg = new m.TypicalModelGuesser({});
-        tdg.guessDefnFromContent(row);
+        tdg.guessDefnFromContent(values);
         model = tdg.model;
       }
-      const content = m.typedContentTransformer(
+
+      const content: { [name: string]: any } = {};
+      m.typedContentTransformer(
         model!,
-        row,
-        contentIndex,
+        values,
+        {
+          contentIndex: contentIndex - 1,
+          assign: (
+            name: string,
+            value: any,
+            transform: (name: string) => string,
+          ): void => {
+            const valueName = transform ? transform(name) : name;
+            content[valueName] = value;
+          },
+        },
         m.consoleErrorHandler,
       );
       intrf.declareContent(content);
       contentIndex++;
     }
-    f.close();
     return model!;
   }
 }
