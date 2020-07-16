@@ -1,4 +1,11 @@
-import { ap, bufIO, csv, inflect, model as m, poly } from "./deps.ts";
+import {
+  artfPersist as ap,
+  stdBufIO as bufIO,
+  stdCSV as csv,
+  inflect,
+  model as m,
+  polyglotArtfNature as ts,
+} from "./deps.ts";
 import * as td from "./typescript-decls.ts";
 
 export interface Source {
@@ -9,16 +16,16 @@ export interface Source {
 
 export class TransformCsvContentToTypeScript {
   readonly ph: ap.PersistenceHandler;
-  readonly code: poly.TypeScriptCodeDeclaration;
+  readonly code: ts.TypeScriptCodeDeclaration;
 
   constructor(ph?: ap.PersistenceHandler) {
     this.ph = ph || new ap.ConsolePersistenceHandler();
-    this.code = new poly.TypeScriptCodeDeclaration(this.ph);
+    this.code = new ts.TypeScriptCodeDeclaration(this.ph);
   }
 
   async transformSourcesWithHeaders(sources: Source[]): Promise<void> {
     for (const source of sources) {
-      const module = new poly.TypeScriptModuleDeclaration(
+      const module = new ts.TypeScriptModuleDeclaration(
         this.code,
         source.moduleName || inflect.guessCaseValue(source.csvSource),
       );
@@ -36,12 +43,12 @@ export class TransformCsvContentToTypeScript {
     this.transformSourcesWithHeaders([source]);
   }
 
-  protected createCodeContainer(): poly.TypeScriptCodeDeclaration {
+  protected createCodeContainer(): ts.TypeScriptCodeDeclaration {
     const ph = new ap.ConsolePersistenceHandler();
-    return new poly.TypeScriptCodeDeclaration(ph);
+    return new ts.TypeScriptCodeDeclaration(ph);
   }
 
-  protected emit(code: poly.PolyglotCodeDecl): void {
+  protected emit(code: ap.PolyglotCodeDecl): void {
     code.emit(
       {
         isContext: true,
@@ -50,17 +57,17 @@ export class TransformCsvContentToTypeScript {
           environmentsName: inflect.guessCaseValue("CLI"),
         },
       },
-      poly.consolePolyglotErrorHandler,
+      ap.consolePolyglotErrorHandler,
     );
   }
 
   protected async transformSingleSource(
     source: Source,
-    module: poly.TypeScriptModuleDeclaration,
-  ): Promise<[m.ContentModel, poly.TypeScriptInterfaceDeclaration]> {
+    module: ts.TypeScriptModuleDeclaration,
+  ): Promise<[m.ContentModel, ts.TypeScriptInterfaceDeclaration]> {
     const interfIdentifier = source.interfIdentifier ||
       inflect.guessCaseValue(source.csvSource);
-    const intrf = new poly.TypeScriptInterfaceDeclaration(
+    const intrf = new ts.TypeScriptInterfaceDeclaration(
       module,
       source.interfIdentifier ||
         inflect.guessCaseValue(source.csvSource),
@@ -72,7 +79,7 @@ export class TransformCsvContentToTypeScript {
 
   protected async consumeSingleSource(
     source: Source,
-    intrf: poly.TypeScriptInterfaceDeclaration,
+    intrf: ts.TypeScriptInterfaceDeclaration,
   ): Promise<m.ContentModel> {
     const f = await Deno.open(source.csvSource);
     const matrix = await csv.readMatrix(new bufIO.BufReader(f));

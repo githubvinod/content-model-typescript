@@ -1,9 +1,9 @@
-import { cm, model as m, poly } from "./deps.ts";
+import { contextMgr as cm, model as m, artfPersist as ap } from "./deps.ts";
 
 export function createTypeScriptInterfaceDecl(
   model: m.ContentModel,
-  intrf: poly.PolyglotInterfaceDecl,
-): poly.PolyglotInterfaceDecl {
+  intrf: ap.PolyglotInterfaceDecl,
+): ap.PolyglotInterfaceDecl {
   for (const property of Object.entries(model)) {
     const propName = property[0];
     const propDefn = property[1];
@@ -27,21 +27,21 @@ export function createTypeScriptPropertyDecl(
   propDefn: m.PropertyDefn,
   srcPropName: string,
   identifierName: string,
-): poly.PolyglotPropertyDecl | undefined {
+): ap.PolyglotPropertyDecl | undefined {
   const description = propDefn.description;
 
   if (propDefn instanceof m.pd.UnknownProperty) {
     return {
       getInterfaceDecl(
         ctx: cm.Context,
-        eh: poly.PolyglotErrorHandler,
+        eh: ap.PolyglotErrorHandler,
       ): string | undefined {
         return `readonly ${identifierName}?: unknown; // ${description}`;
       },
       getContentDecl(
         ctx: cm.Context,
         content: object,
-        eh: poly.PolyglotErrorHandler,
+        eh: ap.PolyglotErrorHandler,
       ): string | undefined {
         // we're always going to skip adding Unkown properties into content
         return undefined;
@@ -57,7 +57,7 @@ export function createTypeScriptPropertyDecl(
     return {
       getInterfaceDecl(
         ctx: cm.Context,
-        eh: poly.PolyglotErrorHandler,
+        eh: ap.PolyglotErrorHandler,
       ): string | undefined {
         return `readonly ${identifierName}${
           required ? "" : "?"
@@ -66,7 +66,7 @@ export function createTypeScriptPropertyDecl(
       getContentDecl(
         ctx: cm.Context,
         content: object,
-        eh: poly.PolyglotErrorHandler,
+        eh: ap.PolyglotErrorHandler,
       ): string | undefined {
         const value = (content as any)[srcPropName];
         return typeof value === "number"
@@ -80,7 +80,7 @@ export function createTypeScriptPropertyDecl(
     return {
       getInterfaceDecl(
         ctx: cm.Context,
-        eh: poly.PolyglotErrorHandler,
+        eh: ap.PolyglotErrorHandler,
       ): string | undefined {
         return `readonly ${identifierName}${
           required ? "" : "?"
@@ -89,7 +89,7 @@ export function createTypeScriptPropertyDecl(
       getContentDecl(
         ctx: cm.Context,
         content: object,
-        eh: poly.PolyglotErrorHandler,
+        eh: ap.PolyglotErrorHandler,
       ): string | undefined {
         const value = (content as any)[srcPropName];
         return typeof value === "boolean"
@@ -103,7 +103,7 @@ export function createTypeScriptPropertyDecl(
     return {
       getInterfaceDecl(
         ctx: cm.Context,
-        eh: poly.PolyglotErrorHandler,
+        eh: ap.PolyglotErrorHandler,
       ): string | undefined {
         return `readonly ${identifierName}${
           required ? "" : "?"
@@ -112,7 +112,7 @@ export function createTypeScriptPropertyDecl(
       getContentDecl(
         ctx: cm.Context,
         content: object,
-        eh: poly.PolyglotErrorHandler,
+        eh: ap.PolyglotErrorHandler,
       ): string | undefined {
         const value = (content as any)[srcPropName];
         return value instanceof Date
@@ -126,7 +126,7 @@ export function createTypeScriptPropertyDecl(
     return {
       getInterfaceDecl(
         ctx: cm.Context,
-        eh: poly.PolyglotErrorHandler,
+        eh: ap.PolyglotErrorHandler,
       ): string | undefined {
         return `readonly ${identifierName}${
           required ? "" : "?"
@@ -135,7 +135,7 @@ export function createTypeScriptPropertyDecl(
       getContentDecl(
         ctx: cm.Context,
         content: object,
-        eh: poly.PolyglotErrorHandler,
+        eh: ap.PolyglotErrorHandler,
       ): string | undefined {
         const value = (content as any)[srcPropName];
         return typeof value === "string"
