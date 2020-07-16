@@ -16,16 +16,16 @@ export interface Source {
 
 export class TransformCsvContentToTypeScript {
   readonly ph: ap.PersistenceHandler;
-  readonly code: ts.TypeScriptCodeDeclaration;
+  readonly code: ts.TypeScriptArtifacts;
 
   constructor(ph?: ap.PersistenceHandler) {
     this.ph = ph || new ap.ConsolePersistenceHandler();
-    this.code = new ts.TypeScriptCodeDeclaration(this.ph);
+    this.code = new ts.TypeScriptArtifacts(this.ph);
   }
 
   async transformSourcesWithHeaders(sources: Source[]): Promise<void> {
     for (const source of sources) {
-      const module = new ts.TypeScriptModuleDeclaration(
+      const module = new ts.TypeScriptModule(
         this.code,
         source.moduleName || inflect.guessCaseValue(source.csvSource),
       );
@@ -43,12 +43,12 @@ export class TransformCsvContentToTypeScript {
     this.transformSourcesWithHeaders([source]);
   }
 
-  protected createCodeContainer(): ts.TypeScriptCodeDeclaration {
+  protected createCodeContainer(): ts.TypeScriptArtifacts {
     const ph = new ap.ConsolePersistenceHandler();
-    return new ts.TypeScriptCodeDeclaration(ph);
+    return new ts.TypeScriptArtifacts(ph);
   }
 
-  protected emit(code: ap.PolyglotCodeDecl): void {
+  protected emit(code: ap.PolyglotCodeArtifacts): void {
     code.emit(
       {
         isContext: true,
@@ -63,11 +63,11 @@ export class TransformCsvContentToTypeScript {
 
   protected async transformSingleSource(
     source: Source,
-    module: ts.TypeScriptModuleDeclaration,
-  ): Promise<[m.ContentModel, ts.TypeScriptInterfaceDeclaration]> {
+    module: ts.TypeScriptModule,
+  ): Promise<[m.ContentModel, ts.TypeScriptInterface]> {
     const interfIdentifier = source.interfIdentifier ||
       inflect.guessCaseValue(source.csvSource);
-    const intrf = new ts.TypeScriptInterfaceDeclaration(
+    const intrf = new ts.TypeScriptInterface(
       module,
       source.interfIdentifier ||
         inflect.guessCaseValue(source.csvSource),
@@ -79,7 +79,7 @@ export class TransformCsvContentToTypeScript {
 
   protected async consumeSingleSource(
     source: Source,
-    intrf: ts.TypeScriptInterfaceDeclaration,
+    intrf: ts.TypeScriptInterface,
   ): Promise<m.ContentModel> {
     const f = await Deno.open(source.csvSource);
     const matrix = await csv.readMatrix(new bufIO.BufReader(f));
@@ -92,7 +92,7 @@ export class TransformCsvContentToTypeScript {
     for (const row of matrix) {
       if (contentIndex == 0) {
         headerRow = row;
-        row.map((col, index) => colIndexByName[col] = index);
+        row.map((col: string, index: number) => colIndexByName[col] = index);
         contentIndex++;
         continue;
       }

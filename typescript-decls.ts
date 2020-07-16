@@ -38,6 +38,7 @@ export function createTypeScriptPropertyDecl(
       ): string | undefined {
         return `readonly ${identifierName}?: unknown; // ${description}`;
       },
+
       getContentDecl(
         ctx: cm.Context,
         content: object,
@@ -63,6 +64,7 @@ export function createTypeScriptPropertyDecl(
           required ? "" : "?"
         }: number; // ${description}`;
       },
+
       getContentDecl(
         ctx: cm.Context,
         content: object,
@@ -86,6 +88,7 @@ export function createTypeScriptPropertyDecl(
           required ? "" : "?"
         }: boolean; // ${description}`;
       },
+
       getContentDecl(
         ctx: cm.Context,
         content: object,
@@ -109,6 +112,7 @@ export function createTypeScriptPropertyDecl(
           required ? "" : "?"
         }: Date; // ${description}`;
       },
+
       getContentDecl(
         ctx: cm.Context,
         content: object,
@@ -132,6 +136,7 @@ export function createTypeScriptPropertyDecl(
           required ? "" : "?"
         }: string; // ${description}`;
       },
+
       getContentDecl(
         ctx: cm.Context,
         content: object,

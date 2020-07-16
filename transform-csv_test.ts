@@ -16,11 +16,11 @@ Deno.test("Transform CSV to TypeScript", async () => {
     "transform-csv_test-single-row.csv.ts.golden",
     ["."],
   );
-  a.assertEquals(firstTest, ph.results[0].artifactText);
+  a.assertEquals(ph.results[0].artifactText, firstTest);
 
   const secondTest = ap.readFileAsTextFromPaths(
     "transform-csv_test-complex.csv.ts.golden",
     ["."],
   );
-  a.assertEquals(secondTest, ph.results[1].artifactText);
+  a.assertEquals(ph.results[1].artifactText, secondTest);
 });
