@@ -1,9 +1,9 @@
-export * as model from "https://cdn.jsdelivr.net/gh/shah/content-model@v1.0.5/mod.ts";
-export * as contextMgr from "https://cdn.jsdelivr.net/gh/shah/context-manager@v1.0.2/mod.ts";
-export * as inflect from "https://cdn.jsdelivr.net/gh/shah/text-inflect@v1.0.3/mod.ts";
+export * as model from "https://denopkg.com/shah/content-model@v1.0.6/mod.ts";
+export * as contextMgr from "https://denopkg.com/shah/context-manager@v1.0.4/mod.ts";
+export * as inflect from "https://denopkg.com/shah/text-inflect@v1.0.3/mod.ts";
 export * as stdCSV from "https://deno.land/std@v0.61.0/encoding/csv.ts";
 export * as stdBufIO from "https://deno.land/std@v0.61.0/io/bufio.ts";
 export * as stdAsserts from "https://deno.land/std@v0.61.0/testing/asserts.ts";
 export * as moment from "https://deno.land/x/moment/moment.ts";
-export * as artfPersist from "https://cdn.jsdelivr.net/gh/shah/artifacts-persistence@v1.0.9/mod.ts";
-export * as polyglotArtfNature from "https://cdn.jsdelivr.net/gh/shah/artifacts-persistence@v1.0.8/polyglot/mod.ts";
+export * as artfPersist from "https://denopkg.com/shah/artifacts-persistence@v1.0.10/mod.ts";
+export * as polyglotArtfNature from "https://denopkg.com/shah/artifacts-persistence@v1.0.10/polyglot/mod.ts";
