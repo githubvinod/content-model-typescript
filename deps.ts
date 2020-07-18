@@ -5,5 +5,5 @@ export * as stdCSV from "https://deno.land/std@v0.61.0/encoding/csv.ts";
 export * as stdBufIO from "https://deno.land/std@v0.61.0/io/bufio.ts";
 export * as stdAsserts from "https://deno.land/std@v0.61.0/testing/asserts.ts";
 export * as moment from "https://deno.land/x/moment/moment.ts";
-export * as artfPersist from "https://cdn.jsdelivr.net/gh/shah/artifacts-persistence@v1.0.8/mod.ts";
+export * as artfPersist from "https://cdn.jsdelivr.net/gh/shah/artifacts-persistence@v1.0.9/mod.ts";
 export * as polyglotArtfNature from "https://cdn.jsdelivr.net/gh/shah/artifacts-persistence@v1.0.8/polyglot/mod.ts";
