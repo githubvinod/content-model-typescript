@@ -1,4 +1,4 @@
-export * as model from "https://denopkg.com/shah/content-model@v1.0.6/mod.ts";
+export * as model from "https://denopkg.com/shah/content-model@v1.0.8/mod.ts";
 export * as contextMgr from "https://denopkg.com/shah/context-manager@v1.0.4/mod.ts";
 export * as inflect from "https://denopkg.com/shah/text-inflect@v1.0.3/mod.ts";
 export * as stdCSV from "https://deno.land/std@v0.61.0/encoding/csv.ts";
