@@ -1,20 +1,20 @@
 import {
   artfPersist as ap,
   stdBufIO as bufIO,
-  modelCSV as csv,
   inflect,
   model as m,
+  modelJSON as mj,
   polyglotArtfNature as ts,
 } from "./deps.ts";
 import * as td from "./typescript-decls.ts";
 
 export interface Source {
-  readonly csvSource: string;
+  readonly jsonSource: string;
   readonly moduleName?: inflect.InflectableValue;
   readonly interfIdentifier?: inflect.InflectableValue;
 }
 
-export class TransformCsvContentToTypeScript {
+export class TransformJsonContentToTypeScript {
   readonly ph: ap.PersistenceHandler;
   readonly code: ts.TypeScriptArtifacts;
 
@@ -23,11 +23,11 @@ export class TransformCsvContentToTypeScript {
     this.code = new ts.TypeScriptArtifacts(this.ph);
   }
 
-  async transformSourcesWithHeaders(sources: Source[]): Promise<void> {
+  async transformSources(sources: Source[]): Promise<void> {
     for (const source of sources) {
       const module = new ts.TypeScriptModule(
         this.code,
-        source.moduleName || inflect.guessCaseValue(source.csvSource),
+        source.moduleName || inflect.guessCaseValue(source.jsonSource),
       );
       this.code.declareModule(module);
       const [model, intrfDecl] = await this.transformSingleSource(
@@ -40,7 +40,7 @@ export class TransformCsvContentToTypeScript {
   }
 
   async transformSourceWithHeaders(source: Source): Promise<void> {
-    this.transformSourcesWithHeaders([source]);
+    this.transformSources([source]);
   }
 
   protected createCodeContainer(): ts.TypeScriptArtifacts {
@@ -66,14 +66,16 @@ export class TransformCsvContentToTypeScript {
     module: ts.TypeScriptModule,
   ): Promise<[m.ContentModel | undefined, ts.TypeScriptInterface]> {
     const interfIdentifier = source.interfIdentifier ||
-      inflect.guessCaseValue(source.csvSource);
+      inflect.guessCaseValue(source.jsonSource);
     const intrf = new ts.TypeScriptInterface(
       module,
       source.interfIdentifier ||
-        inflect.guessCaseValue(source.csvSource),
+        inflect.guessCaseValue(source.jsonSource),
     );
     const model = await this.consumeSingleSource(source, intrf);
-    td.createTypeScriptInterfaceDecl(model!, intrf);
+    if (model) {
+      td.createTypeScriptInterfaceDecl(model, intrf);
+    }
     return [model, intrf];
   }
 
@@ -81,9 +83,9 @@ export class TransformCsvContentToTypeScript {
     source: Source,
     intrf: ts.TypeScriptInterface,
   ): Promise<m.ContentModel | undefined> {
-    return csv.consumeCsvSourceWithHeader(
-      source.csvSource,
-      (content: object, index: number, model: m.ContentModel): boolean => {
+    return mj.consumeJsonFileWithFirstRowAsModel(
+      source.jsonSource,
+      (content: object, index: number): boolean => {
         intrf.declareContent(content);
         return true;
       },
