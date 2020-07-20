@@ -7,8 +7,8 @@ import {
 } from "./deps.ts";
 import * as td from "./typescript-decls.ts";
 
-export interface Source {
-  readonly csvSource: string;
+export interface CsvSource {
+  readonly csvFileName: string;
   readonly moduleName?: inflect.InflectableValue;
   readonly interfIdentifier?: inflect.InflectableValue;
 }
@@ -22,11 +22,11 @@ export class TransformCsvContentToTypeScript {
     this.code = new ts.TypeScriptArtifacts(this.ph, {});
   }
 
-  async transformSourcesWithHeaders(sources: Source[]): Promise<void> {
+  async transformSourcesWithHeaders(sources: CsvSource[]): Promise<void> {
     for (const source of sources) {
       const module = new ts.TypeScriptModule(
         this.code,
-        source.moduleName || inflect.guessCaseValue(source.csvSource),
+        source.moduleName || inflect.guessCaseValue(source.csvFileName),
       );
       this.code.declareModule(module);
       const [model, intrfDecl] = await this.transformSingleSource(
@@ -38,7 +38,7 @@ export class TransformCsvContentToTypeScript {
     this.emit(this.code);
   }
 
-  async transformSourceWithHeaders(source: Source): Promise<void> {
+  async transformSourceWithHeaders(source: CsvSource): Promise<void> {
     this.transformSourcesWithHeaders([source]);
   }
 
@@ -61,15 +61,15 @@ export class TransformCsvContentToTypeScript {
   }
 
   protected async transformSingleSource(
-    source: Source,
+    source: CsvSource,
     module: ts.TypeScriptModule,
   ): Promise<[m.ContentModel | undefined, ts.TypeScriptInterface]> {
     const interfIdentifier = source.interfIdentifier ||
-      inflect.guessCaseValue(source.csvSource);
+      inflect.guessCaseValue(source.csvFileName);
     const intrf = new ts.TypeScriptInterface(
       module,
       source.interfIdentifier ||
-        inflect.guessCaseValue(source.csvSource),
+        inflect.guessCaseValue(source.csvFileName),
       {},
     );
     const model = await this.consumeSingleSource(source, intrf);
@@ -78,11 +78,11 @@ export class TransformCsvContentToTypeScript {
   }
 
   protected async consumeSingleSource(
-    source: Source,
+    source: CsvSource,
     intrf: ts.TypeScriptInterface,
   ): Promise<m.ContentModel | undefined> {
     return csv.consumeCsvSourceWithHeader(
-      source.csvSource,
+      source.csvFileName,
       (content: object, index: number, model: m.ContentModel): boolean => {
         intrf.declareContent(content);
         return true;

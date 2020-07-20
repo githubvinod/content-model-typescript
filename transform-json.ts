@@ -7,8 +7,8 @@ import {
 } from "./deps.ts";
 import * as td from "./typescript-decls.ts";
 
-export interface Source {
-  readonly jsonSource: string;
+export interface JsonSource {
+  readonly jsonFileName: string;
   readonly moduleName?: inflect.InflectableValue;
   readonly interfIdentifier?: inflect.InflectableValue;
 }
@@ -22,11 +22,11 @@ export class TransformJsonContentToTypeScript {
     this.code = new ts.TypeScriptArtifacts(this.ph, {});
   }
 
-  async transformSources(sources: Source[]): Promise<void> {
+  async transformSources(sources: JsonSource[]): Promise<void> {
     for (const source of sources) {
       const module = new ts.TypeScriptModule(
         this.code,
-        source.moduleName || inflect.guessCaseValue(source.jsonSource),
+        source.moduleName || inflect.guessCaseValue(source.jsonFileName),
       );
       this.code.declareModule(module);
       const [model, intrfDecl] = await this.transformSingleSource(
@@ -38,7 +38,7 @@ export class TransformJsonContentToTypeScript {
     this.emit(this.code);
   }
 
-  async transformSourceWithHeaders(source: Source): Promise<void> {
+  async transformSourceWithHeaders(source: JsonSource): Promise<void> {
     this.transformSources([source]);
   }
 
@@ -61,15 +61,15 @@ export class TransformJsonContentToTypeScript {
   }
 
   protected async transformSingleSource(
-    source: Source,
+    source: JsonSource,
     module: ts.TypeScriptModule,
   ): Promise<[m.ContentModel | undefined, ts.TypeScriptInterface]> {
     const interfIdentifier = source.interfIdentifier ||
-      inflect.guessCaseValue(source.jsonSource);
+      inflect.guessCaseValue(source.jsonFileName);
     const intrf = new ts.TypeScriptInterface(
       module,
       source.interfIdentifier ||
-        inflect.guessCaseValue(source.jsonSource),
+        inflect.guessCaseValue(source.jsonFileName),
       {},
     );
     const model = await this.consumeSingleSource(source, intrf);
@@ -80,11 +80,11 @@ export class TransformJsonContentToTypeScript {
   }
 
   protected async consumeSingleSource(
-    source: Source,
+    source: JsonSource,
     intrf: ts.TypeScriptInterface,
   ): Promise<m.ContentModel | undefined> {
     return mj.consumeJsonFileWithFirstRowAsModel(
-      source.jsonSource,
+      source.jsonFileName,
       (content: object, index: number): boolean => {
         intrf.declareContent(content);
         return true;

@@ -6,8 +6,8 @@ Deno.test("Transform CSV to TypeScript", async () => {
   const transformer = new trCSV.TransformCsvContentToTypeScript(ph);
   await transformer.transformSourcesWithHeaders(
     [
-      { csvSource: "transform-csv_test-single-row.csv" },
-      { csvSource: "transform-csv_test-complex.csv" },
+      { csvFileName: "transform-csv_test-single-row.csv" },
+      { csvFileName: "transform-csv_test-complex.csv" },
     ],
   );
   a.assertEquals(ph.results.length, 2, "Expected two results");
