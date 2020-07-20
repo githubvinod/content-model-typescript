@@ -1,9 +1,8 @@
 import {
   artfPersist as ap,
-  stdBufIO as bufIO,
-  modelCSV as csv,
   inflect,
   model as m,
+  modelCSV as csv,
   polyglotArtfNature as ts,
 } from "./deps.ts";
 import * as td from "./typescript-decls.ts";
@@ -20,7 +19,7 @@ export class TransformCsvContentToTypeScript {
 
   constructor(ph?: ap.PersistenceHandler) {
     this.ph = ph || new ap.ConsolePersistenceHandler();
-    this.code = new ts.TypeScriptArtifacts(this.ph);
+    this.code = new ts.TypeScriptArtifacts(this.ph, {});
   }
 
   async transformSourcesWithHeaders(sources: Source[]): Promise<void> {
@@ -45,7 +44,7 @@ export class TransformCsvContentToTypeScript {
 
   protected createCodeContainer(): ts.TypeScriptArtifacts {
     const ph = new ap.ConsolePersistenceHandler();
-    return new ts.TypeScriptArtifacts(ph);
+    return new ts.TypeScriptArtifacts(ph, {});
   }
 
   protected emit(code: ap.PolyglotCodeArtifacts): void {
@@ -71,6 +70,7 @@ export class TransformCsvContentToTypeScript {
       module,
       source.interfIdentifier ||
         inflect.guessCaseValue(source.csvSource),
+      {},
     );
     const model = await this.consumeSingleSource(source, intrf);
     td.createTypeScriptInterfaceDecl(model!, intrf);

@@ -1,4 +1,4 @@
-import { stdAsserts as a, artfPersist as ap } from "./deps.ts";
+import { artfPersist as ap, stdAsserts as a } from "./deps.ts";
 import * as trCSV from "./transform-csv.ts";
 
 Deno.test("Transform CSV to TypeScript", async () => {

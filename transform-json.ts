@@ -1,6 +1,5 @@
 import {
   artfPersist as ap,
-  stdBufIO as bufIO,
   inflect,
   model as m,
   modelJSON as mj,
@@ -20,7 +19,7 @@ export class TransformJsonContentToTypeScript {
 
   constructor(ph?: ap.PersistenceHandler) {
     this.ph = ph || new ap.ConsolePersistenceHandler();
-    this.code = new ts.TypeScriptArtifacts(this.ph);
+    this.code = new ts.TypeScriptArtifacts(this.ph, {});
   }
 
   async transformSources(sources: Source[]): Promise<void> {
@@ -45,7 +44,7 @@ export class TransformJsonContentToTypeScript {
 
   protected createCodeContainer(): ts.TypeScriptArtifacts {
     const ph = new ap.ConsolePersistenceHandler();
-    return new ts.TypeScriptArtifacts(ph);
+    return new ts.TypeScriptArtifacts(ph, {});
   }
 
   protected emit(code: ap.PolyglotCodeArtifacts): void {
@@ -71,6 +70,7 @@ export class TransformJsonContentToTypeScript {
       module,
       source.interfIdentifier ||
         inflect.guessCaseValue(source.jsonSource),
+      {},
     );
     const model = await this.consumeSingleSource(source, intrf);
     if (model) {

@@ -10,17 +10,10 @@ Deno.test("Transform CSV to TypeScript", async () => {
     ],
   );
   a.assertEquals(ph.results.length, 1, "Expected one results");
-  console.log(ph.results[0].artifactText);
 
-  // const firstTest = ap.readFileAsTextFromPaths(
-  //   "transform-csv_test-single-row.csv.ts.golden",
-  //   ["."],
-  // );
-  // a.assertEquals(ph.results[0].artifactText, firstTest);
-
-  // const secondTest = ap.readFileAsTextFromPaths(
-  //   "transform-csv_test-complex.csv.ts.golden",
-  //   ["."],
-  // );
-  // a.assertEquals(ph.results[1].artifactText, secondTest);
+  const golden = ap.readFileAsTextFromPaths(
+    "transform-json_test-simple.json.ts.golden",
+    ["."],
+  );
+  a.assertEquals(ph.results[0].artifactText, golden);
 });
