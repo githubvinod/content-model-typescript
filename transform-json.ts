@@ -7,10 +7,62 @@ import {
 } from "./deps.ts";
 import * as td from "./typescript-decls.ts";
 
-export interface JsonSource {
+export interface JsonSourceOptions {
+}
+
+export interface JsonSource extends JsonSourceOptions {
+  readonly moduleName: inflect.InflectableValue;
+  readonly interfIdentifier: inflect.InflectableValue;
+  generateTypeScript(
+    intrf: ts.TypeScriptInterface,
+  ): Promise<m.ContentModel | undefined>;
+}
+
+export interface JsonFileSource extends JsonSource {
   readonly jsonFileName: string;
-  readonly moduleName?: inflect.InflectableValue;
-  readonly interfIdentifier?: inflect.InflectableValue;
+}
+
+export class JsonFileSource implements JsonFileSource {
+  readonly moduleName: inflect.InflectableValue;
+  readonly interfIdentifier: inflect.InflectableValue;
+
+  constructor(readonly jsonFileName: string) {
+    this.moduleName = inflect.guessCaseValue(jsonFileName);
+    this.interfIdentifier = inflect.guessCaseValue(jsonFileName);
+  }
+
+  async generateTypeScript(
+    intrf: ts.TypeScriptInterface,
+  ): Promise<m.ContentModel | undefined> {
+    return mj.consumeJsonFileWithFirstRowAsModel(
+      this.jsonFileName,
+      (content: object, index: number): boolean => {
+        intrf.declareContent(content);
+        return true;
+      },
+    );
+  }
+}
+
+export class ObjectInstanceSource implements JsonSource {
+  constructor(
+    readonly instance: any,
+    readonly moduleName: inflect.InflectableValue,
+    readonly interfIdentifier: inflect.InflectableValue,
+  ) {
+  }
+
+  async generateTypeScript(
+    intrf: ts.TypeScriptInterface,
+  ): Promise<m.ContentModel | undefined> {
+    return mj.consumeJsonWithFirstRowAsModel(
+      this.instance,
+      (content: object, index: number): boolean => {
+        intrf.declareContent(content);
+        return true;
+      },
+    );
+  }
 }
 
 export class TransformJsonContentToTypeScript {
@@ -26,7 +78,7 @@ export class TransformJsonContentToTypeScript {
     for (const source of sources) {
       const module = new ts.TypeScriptModule(
         this.code,
-        source.moduleName || inflect.guessCaseValue(source.jsonFileName),
+        source.moduleName,
       );
       this.code.declareModule(module);
       const [model, intrfDecl] = await this.transformSingleSource(
@@ -64,31 +116,16 @@ export class TransformJsonContentToTypeScript {
     source: JsonSource,
     module: ts.TypeScriptModule,
   ): Promise<[m.ContentModel | undefined, ts.TypeScriptInterface]> {
-    const interfIdentifier = source.interfIdentifier ||
-      inflect.guessCaseValue(source.jsonFileName);
+    const interfIdentifier = source.interfIdentifier;
     const intrf = new ts.TypeScriptInterface(
       module,
-      source.interfIdentifier ||
-        inflect.guessCaseValue(source.jsonFileName),
+      interfIdentifier,
       {},
     );
-    const model = await this.consumeSingleSource(source, intrf);
+    const model = await source.generateTypeScript(intrf);
     if (model) {
       td.createTypeScriptInterfaceDecl(model, intrf);
     }
     return [model, intrf];
-  }
-
-  protected async consumeSingleSource(
-    source: JsonSource,
-    intrf: ts.TypeScriptInterface,
-  ): Promise<m.ContentModel | undefined> {
-    return mj.consumeJsonFileWithFirstRowAsModel(
-      source.jsonFileName,
-      (content: object, index: number): boolean => {
-        intrf.declareContent(content);
-        return true;
-      },
-    );
   }
 }

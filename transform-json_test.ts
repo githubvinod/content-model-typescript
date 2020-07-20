@@ -6,7 +6,7 @@ Deno.test("Transform CSV to TypeScript", async () => {
   const transformer = new trJSON.TransformJsonContentToTypeScript(ph);
   await transformer.transformSources(
     [
-      { jsonFileName: "transform-json_test-simple.json" },
+      new trJSON.JsonFileSource("transform-json_test-simple.json"),
     ],
   );
   a.assertEquals(ph.results.length, 1, "Expected one results");
