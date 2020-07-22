@@ -37,6 +37,7 @@ export function createTypeScriptPropertyDecl(
 
   if (propDefn instanceof m.pd.UnknownProperty) {
     return {
+      isPolyglotPropertyDecl: true,
       getInterfaceDecl(
         ctx: cm.Context,
         eh: ap.PolyglotErrorHandler,
@@ -52,15 +53,6 @@ export function createTypeScriptPropertyDecl(
             return `readonly ${identifierName}?: object; // ${description}`;
         }
       },
-
-      getContentDecl(
-        ctx: cm.Context,
-        content: object,
-        eh: ap.PolyglotErrorHandler,
-      ): string | undefined {
-        // we're always going to skip adding Unkown properties into content
-        return undefined;
-      },
     };
   }
 
@@ -70,6 +62,7 @@ export function createTypeScriptPropertyDecl(
 
   if (propDefn instanceof m.pd.NumericProperty) {
     return {
+      isPolyglotPropertyDecl: true,
       getInterfaceDecl(
         ctx: cm.Context,
         eh: ap.PolyglotErrorHandler,
@@ -78,22 +71,12 @@ export function createTypeScriptPropertyDecl(
           required ? "" : "?"
         }: number; // ${description}`;
       },
-
-      getContentDecl(
-        ctx: cm.Context,
-        content: object,
-        eh: ap.PolyglotErrorHandler,
-      ): string | undefined {
-        const value = (content as any)[srcPropName];
-        return typeof value === "number"
-          ? `${identifierName}: ${value}`
-          : undefined;
-      },
     };
   }
 
   if (propDefn instanceof m.pd.BooleanProperty) {
     return {
+      isPolyglotPropertyDecl: true,
       getInterfaceDecl(
         ctx: cm.Context,
         eh: ap.PolyglotErrorHandler,
@@ -102,22 +85,12 @@ export function createTypeScriptPropertyDecl(
           required ? "" : "?"
         }: boolean; // ${description}`;
       },
-
-      getContentDecl(
-        ctx: cm.Context,
-        content: object,
-        eh: ap.PolyglotErrorHandler,
-      ): string | undefined {
-        const value = (content as any)[srcPropName];
-        return typeof value === "boolean"
-          ? `${identifierName}: ${value}`
-          : undefined;
-      },
     };
   }
 
   if (propDefn instanceof m.pd.DateTimeProperty) {
     return {
+      isPolyglotPropertyDecl: true,
       getInterfaceDecl(
         ctx: cm.Context,
         eh: ap.PolyglotErrorHandler,
@@ -126,22 +99,12 @@ export function createTypeScriptPropertyDecl(
           required ? "" : "?"
         }: Date; // ${description}`;
       },
-
-      getContentDecl(
-        ctx: cm.Context,
-        content: object,
-        eh: ap.PolyglotErrorHandler,
-      ): string | undefined {
-        const value = (content as any)[srcPropName];
-        return value instanceof Date
-          ? `${identifierName}: new Date("${value}")`
-          : undefined;
-      },
     };
   }
 
   if (propDefn instanceof m.pd.TextProperty) {
     return {
+      isPolyglotPropertyDecl: true,
       getInterfaceDecl(
         ctx: cm.Context,
         eh: ap.PolyglotErrorHandler,
@@ -149,17 +112,6 @@ export function createTypeScriptPropertyDecl(
         return `readonly ${identifierName}${
           required ? "" : "?"
         }: string; // ${description}`;
-      },
-
-      getContentDecl(
-        ctx: cm.Context,
-        content: object,
-        eh: ap.PolyglotErrorHandler,
-      ): string | undefined {
-        const value = (content as any)[srcPropName];
-        return typeof value === "string"
-          ? `${identifierName}: "${value}"` // TODO escape double-quotes inside $value
-          : undefined;
       },
     };
   }
@@ -169,6 +121,7 @@ export function createTypeScriptPropertyDecl(
     propDefn instanceof m.pd.ObjectArrayProperty
   ) {
     return {
+      isPolyglotPropertyDecl: true,
       getInterfaceDecl(
         ctx: cm.Context,
         eh: ap.PolyglotErrorHandler,
@@ -199,15 +152,6 @@ export function createTypeScriptPropertyDecl(
         }${
           propDefn instanceof m.pd.ObjectArrayProperty ? "[]" : ""
         }; // ${description}`;
-      },
-
-      getContentDecl(
-        ctx: cm.Context,
-        content: object,
-        eh: ap.PolyglotErrorHandler,
-      ): string | undefined {
-        const value = (content as any)[srcPropName];
-        return `${identifierName}: ${js.stringify(value)}`;
       },
     };
   }

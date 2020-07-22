@@ -14,6 +14,7 @@ export interface JsonSource extends JsonSourceOptions {
   readonly moduleName: inflect.InflectableValue;
   readonly interfIdentifier: inflect.InflectableValue;
   generateTypeScript(
+    module: ts.TypeScriptModule,
     intrf: ts.TypeScriptInterface,
   ): Promise<m.ContentModel | undefined>;
 }
@@ -32,12 +33,20 @@ export class JsonFileSource implements JsonFileSource {
   }
 
   async generateTypeScript(
+    module: ts.TypeScriptModule,
     intrf: ts.TypeScriptInterface,
   ): Promise<m.ContentModel | undefined> {
     return mj.consumeJsonFileWithFirstRowAsModel(
       this.jsonFileName,
       (content: object, index: number): boolean => {
-        intrf.declareContent(content);
+        module.declareContent(
+          new ts.TypeScriptContent(
+            inflect.guessCaseValue(this.jsonFileName),
+            intrf,
+            content,
+            {},
+          ),
+        );
         return true;
       },
     );
@@ -49,16 +58,25 @@ export class ObjectInstanceSource implements JsonSource {
     readonly instance: any,
     readonly moduleName: inflect.InflectableValue,
     readonly interfIdentifier: inflect.InflectableValue,
+    readonly contentIdentifier: inflect.InflectableValue,
   ) {
   }
 
   async generateTypeScript(
+    module: ts.TypeScriptModule,
     intrf: ts.TypeScriptInterface,
   ): Promise<m.ContentModel | undefined> {
     return mj.consumeJsonWithFirstRowAsModel(
       this.instance,
       (content: object, index: number): boolean => {
-        intrf.declareContent(content);
+        module.declareContent(
+          new ts.TypeScriptContent(
+            this.contentIdentifier,
+            intrf,
+            content,
+            {},
+          ),
+        );
         return true;
       },
     );
@@ -122,7 +140,7 @@ export class TransformJsonContentToTypeScript {
       interfIdentifier,
       {},
     );
-    const model = await source.generateTypeScript(intrf);
+    const model = await source.generateTypeScript(module, intrf);
     if (model) {
       td.createTypeScriptInterfaceDecl(model, intrf);
     }

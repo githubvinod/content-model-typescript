@@ -7,10 +7,68 @@ import {
 } from "./deps.ts";
 import * as td from "./typescript-decls.ts";
 
-export interface CsvSource {
+export interface CsvSourceOptions {
+}
+
+export interface CsvSource extends CsvSourceOptions {
+  readonly moduleName: inflect.InflectableValue;
+  readonly interfIdentifier: inflect.InflectableValue;
+  readonly constIdentifier: inflect.InflectableValue;
+  generateTypeScript(
+    module: ts.TypeScriptModule,
+    intrf: ts.TypeScriptInterface,
+  ): Promise<m.ContentModel | undefined>;
+}
+
+export interface CsvFileSource extends CsvSource {
   readonly csvFileName: string;
-  readonly moduleName?: inflect.InflectableValue;
-  readonly interfIdentifier?: inflect.InflectableValue;
+}
+
+export class CsvFileSource implements CsvFileSource {
+  readonly moduleName: inflect.InflectableValue;
+  readonly interfIdentifier: inflect.InflectableValue;
+  readonly constIdentifier: inflect.InflectableValue;
+
+  constructor(
+    readonly csvFileName: string,
+    options?: {
+      moduleName?: inflect.InflectableValue;
+      interfIdentifier?: inflect.InflectableValue;
+      constIdentifier?: inflect.InflectableValue;
+    },
+  ) {
+    this.moduleName = options?.moduleName ||
+      inflect.guessCaseValue(csvFileName);
+    this.interfIdentifier = options?.interfIdentifier ||
+      inflect.guessCaseValue(csvFileName);
+    this.constIdentifier = options?.constIdentifier ||
+      inflect.guessCaseValue(csvFileName);
+  }
+
+  async generateTypeScript(
+    module: ts.TypeScriptModule,
+    intrf: ts.TypeScriptInterface,
+  ): Promise<m.ContentModel | undefined> {
+    const csvRows: object[] = [];
+    const model = await csv.consumeCsvSourceWithHeader(
+      this.csvFileName,
+      (content: object, index: number, model: m.ContentModel): boolean => {
+        csvRows.push(content);
+        return true;
+      },
+    );
+    if (csvRows.length > 0) {
+      module.declareContent(
+        new ts.TypeScriptContent(
+          this.constIdentifier,
+          intrf,
+          csvRows.length > 1 ? csvRows : csvRows[0],
+          {},
+        ),
+      );
+    }
+    return model;
+  }
 }
 
 export class TransformCsvContentToTypeScript {
@@ -26,7 +84,7 @@ export class TransformCsvContentToTypeScript {
     for (const source of sources) {
       const module = new ts.TypeScriptModule(
         this.code,
-        source.moduleName || inflect.guessCaseValue(source.csvFileName),
+        source.moduleName,
       );
       this.code.declareModule(module);
       const [model, intrfDecl] = await this.transformSingleSource(
@@ -57,6 +115,7 @@ export class TransformCsvContentToTypeScript {
         },
       },
       ap.consolePolyglotErrorHandler,
+      { appendIfExists: true },
     );
   }
 
@@ -64,29 +123,14 @@ export class TransformCsvContentToTypeScript {
     source: CsvSource,
     module: ts.TypeScriptModule,
   ): Promise<[m.ContentModel | undefined, ts.TypeScriptInterface]> {
-    const interfIdentifier = source.interfIdentifier ||
-      inflect.guessCaseValue(source.csvFileName);
+    const interfIdentifier = source.interfIdentifier;
     const intrf = new ts.TypeScriptInterface(
       module,
-      source.interfIdentifier ||
-        inflect.guessCaseValue(source.csvFileName),
+      source.interfIdentifier,
       {},
     );
-    const model = await this.consumeSingleSource(source, intrf);
+    const model = await source.generateTypeScript(module, intrf);
     td.createTypeScriptInterfaceDecl(model!, intrf);
     return [model, intrf];
-  }
-
-  protected async consumeSingleSource(
-    source: CsvSource,
-    intrf: ts.TypeScriptInterface,
-  ): Promise<m.ContentModel | undefined> {
-    return csv.consumeCsvSourceWithHeader(
-      source.csvFileName,
-      (content: object, index: number, model: m.ContentModel): boolean => {
-        intrf.declareContent(content);
-        return true;
-      },
-    );
   }
 }
