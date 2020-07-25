@@ -40,7 +40,6 @@ Deno.test("Import from multiple CSVs and generate separate TypeScript modules", 
 Deno.test("Import from multiple CSVs and generate combined TypeScript module with single object", async () => {
   const ph = new ap.InMemoryPersistenceHandler();
   const transformer = new trCSV.TransformCsvContentToTypeScript(ph);
-  const moduleName = inflect.guessCaseValue("transform-csv_test-common");
   await transformer.transformSourcesWithHeadersIntoSingleModule(
     {
       moduleName: inflect.guessCaseValue("main"),
@@ -54,12 +53,12 @@ Deno.test("Import from multiple CSVs and generate combined TypeScript module wit
         {
           allowSingleRowAsObject: true,
         },
-        { moduleName: moduleName },
+        {},
       ),
       new trCSV.CsvFileSource(
         "transform-csv_test-complex.csv",
         {},
-        { moduleName: moduleName },
+        {},
       ),
     ],
   );

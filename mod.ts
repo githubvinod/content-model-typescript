@@ -1,3 +1,2 @@
-export * from "./transform-csv.ts";
-export * from "./transform-json.ts";
-export * from "./typescript-decls.ts";
+export * as transformCSV from "./transform-csv.ts";
+export * as transformJSON from "./transform-json.ts";
