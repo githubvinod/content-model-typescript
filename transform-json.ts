@@ -44,7 +44,7 @@ export class JsonFileSource implements JsonFileSource {
             inflect.guessCaseValue(this.jsonFileName),
             intrf,
             content,
-            {},
+            { moduleExport: true },
           ),
         );
         return true;
@@ -74,7 +74,7 @@ export class ObjectInstanceSource implements JsonSource {
             this.contentIdentifier,
             intrf,
             content,
-            {},
+            { moduleExport: true },
           ),
         );
         return true;
